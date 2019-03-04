@@ -1,0 +1,90 @@
+//数据结构--》顺序结构--》顺序栈
+//SqStack.cpp
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef int Elemtype;
+
+//顺序栈的结构体定义
+typedef struct{
+	Elemtype* elem;
+	int top;
+	int size;
+	int increment;//每次空降不足时的扩增量
+}SqStack;
+
+//初始化顺序栈
+int InitStack(SqStack& s,int size,int inc)
+{
+	s.elem=(Elemtype*)malloc(size*sizeof(Elemtype));
+	if(NULL == s.elem)
+	{
+		return -1;
+	}
+	s.top=0;
+	s.size==size;
+	s.increment=inc;
+	return 1;
+}
+//销毁顺序栈
+int DestroyStack(SqStack& s)
+{
+	free(s.elem);
+	s.elem=NULL;
+	return 1;
+}
+//判断s是否为空，若空则返回1，否则返回-1
+int Empty(SqStack s)
+{
+	if(0==s.top)
+	{
+		return 1;
+	}
+	return -1;
+}
+//清空栈
+void ClearStack(SqStack& s)
+{
+	if(0==s.top)
+		return;
+	s.size=0;
+	s.top=0;
+}
+//元素e压入栈
+int Push(SqStack& s,Elemtype e)
+{
+	Elemtype* newbase;
+	if(s.top>=s.size)//空间不足，直接申请新空间
+	{
+		newbase=(Elemtype*)realloc(s.elem,(s.size+s.increment)*sizeof(Elemtype));
+		if(NULL==newbase)
+		{
+			return -1;
+		}
+	s.elem=newbase;
+	s.size+=s.increment;
+	}
+	s.elem[s.top++]=e;
+	return 1;
+}
+//取栈顶元素
+int GetTop(SqStack& s,Elemtype& e)
+{
+	if(0==s.top)
+	{
+		return -1;
+	}
+	e=s.elem[s.top-1];
+	return e;
+}
+//出栈
+int Pop(SqStack& s,Elemtype& e)
+{
+	if(0==s.top)
+	{
+		return -1;
+	}
+	e=s.elem[s.top-1];
+	s.top--;
+	return e;
+}
