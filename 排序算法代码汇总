@@ -1,0 +1,360 @@
+八个排序算法的代码如下：
+//1.冒泡排序
+//比较相邻元素，如果第一个比第二个大，就交换他们两个（按从小到大的顺序排）
+void BubbleSort(std::vector<int>& v)
+{
+	int len=v.size();
+	for(int i=0;i<len-1;++i)
+	{
+		for(int j=0;j<len-1-i;++j)
+		{
+			if(v[j]>v[j+1])
+			{
+				std::swap(v[j],v[j+1]);
+			}
+		}
+	}
+}
+//冒泡排序的优化（减去不必要的比较）
+void BubbleSort(std::vector<int>& v)
+{
+	int len=v.size();
+	bool order=false;//如果发生了交换则为false，否则为true
+	for(int i=0;i<len-1&&!order;++i)
+	{
+		order=true;
+		for(int j=0;j<len-1-i;++j)
+		{
+			if(v[j]>v[j+1])
+			{
+				std::swap(v[j],v[j+1]);
+				order=false;
+			}
+		}
+	}
+}
+//2.选择排序
+//思路：在无序区里找一个最小的元素放在待排序列的后面
+void SelectSort(std::vector<int>& v)
+{
+	int min;
+	int len=v.size();
+	for(int i=0;i<len-1;++i)
+	{
+		min=i;
+		for(int j=i+1;j<len;++j)//找待排序列中比基准小的第一个元素，进行交换
+		{
+			if(v[j]<v[min])
+			{
+				min=j;
+			}
+		}
+		if(i!=min)
+		{
+			std::swap(v[i],v[min]);
+		}
+	}
+}
+//3.插入排序
+//思路：把无序区的第一个元素插入到已排序部分的合适位置，如果排序区的元素大于新元素则把这个元素向后挪一位
+void InsertSort(std::vector<int>& v)
+{
+	int len=v.size();
+	for(int i=1;i<len-1;++i)
+	{
+		int tmp=v[i];
+		for(int j=i-1;j>=0;--j)
+		{
+			if(v[j]>tmp)
+			{
+				v[j+1]=v[j];
+				v[j]=tmp;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+}
+//4.快速排序
+//思路：使用分治的思想，通过一趟排序将待排序列分割成两部分，其中一部分记录的关键字均比另一部分记录的关键字小。
+//之后分别对这两部分记录继续进行排序，以达到整个序列有序的目的。
+//一趟排序把基准位置的值进行排序，返回下一次的基准
+int Partition(int *arr,int low,int high)
+{
+	
+	//int tmp=arr[low];//每次把low作为比较的一个基准
+	//int tmp=selectPos1(arr,low,high);
+	int tmp=SelectPos2(arr,low,high);
+	while(low<high)
+	{
+		while(low<high&&arr[high]>tmp)//如果从high往low方向走时碰到比tmp小的把当前high位置的值赋给low位置
+		{
+			high--;
+		}
+		if(low==high)
+		{
+			break;
+		}
+
+	    arr[low]=arr[high];
+
+		while(low<high&&tmp>arr[low])//当high走过一遍后就走low，从low往high方向走时碰到比tmp大的把当前low位置的值赋给high位置
+		{
+			low++;
+		}
+		if(low==high)
+		{
+			break;
+		}
+
+		arr[high]=arr[low];
+	}
+
+	arr[low]=tmp;//一趟下来把当前low位置的值确定下来，接下来便要排序当前位置两边的数据
+
+	return low;//把当前位置作为基准进行下一次排序
+}
+
+//递归快速排序
+void Quick(int *arr,int low,int high)
+{
+	int par=Partition(arr,low,high);//返回的基准
+	if(low+1<par)//保证基准左边至少有2个数
+	{
+		Quick(arr,low,par-1);
+	}
+	if(par<high-1)//保证基准右边至少有2个数
+	{
+		Quick(arr,par+1,high);
+	}
+}
+
+
+//为了实现接口参数与其他排序算法的参数的一致性
+void QuickSort1(int *arr,int len)
+{
+	Quick(arr,0,len-1);
+}
+
+
+
+//非递归快速排序
+void QuickSort2(int *arr,int len)
+{
+	int low=0;
+	int high=len-1;
+	int top=0;
+	int n=(int)(log10(double(len-1))/log10(double(2))) + 1;//根据推算得出比较次数
+	int *stack=(int *)malloc(2*sizeof(int)*n);//申请一个栈空间，每次都存放要比较的low和high
+	assert(stack!=NULL);
+
+	stack[top++]=low;
+	stack[top++]=high;
+
+	while(top!=0)
+	{
+		high=stack[--top];
+		low=stack[--top];
+
+		int par=Partition (arr,low,high);
+
+		if(low+1<par)
+		{
+			stack[top++]=low;
+			stack[top++]=par-1;//继续入栈当前需要比较的数
+		}
+		if(par+1<high)
+		{
+			stack[top++]=par+1;
+			stack[top++]=high;
+		}
+	}
+	free(stack);
+	stack=NULL;
+}
+
+//快速排序的优化（从基准的选取上进行优化）
+int SelectPos1(int *arr,int left,int right)
+{
+	srand((unsigned)time(NULL));
+
+	int pos=0;
+	if(left<right)
+	{
+		pos= rand()%(right-left) + left;//在right-left这段区间随机选一个数
+	}
+	else
+	{
+		pos=left;
+	}
+
+	std::swap(arr[pos],arr[left]);//为了继续使用递归的快速排序算法
+	return arr[left];
+}
+
+//三数取中
+int SelectPos2(int *arr,int left,int right)
+{
+	int mid=0;
+	if(left<right)
+	{
+		mid=(right-left)/2;
+	}
+
+	else
+	{
+		return arr[left];//在递归调用中，如果不满足left<right则一定为left=right
+	}
+
+	if(arr[mid]>arr[right])
+	{
+		std::swap(arr[mid],arr[right]);
+	}
+	if(arr[left]>arr[right])
+	{
+		std::swap(arr[left],arr[right]);
+	}
+	if(arr[left]>arr[mid])
+	{
+		std::swap(arr[left],arr[mid]);
+	}
+	//此时arr[left]为三个数中最小的那个数
+	return arr[left];
+}
+//5.希尔排序
+//思想：每一轮先按照事先决定的间隔进行插入排序，间隔依次缩小，最后一次排序的间隔为1
+void ShellSort(std::vector<int>& v)
+{
+	int len=v.size();
+	int h=1;//间隔大小用h表示
+	while(h<len/3)
+	{
+		h=3*h+1;
+	}
+	while(h>=1)
+	{
+		for(int i=h;i<len;++i)
+		{
+			for(int j=i;j>=h&&v[j]<v[j-h];j-=h)
+			{
+				std::swap(v[j],v[j-h]);
+			}
+		}
+		h=h/3;
+	}
+}
+//6.归并排序
+//思路：先将待排序列先分成两组，分别给两边的序列排序，再将他们归并起来
+//合并的代码，可以找一个辅助数组
+void Merge(int a[],int low,int mid,int high,int temp[])
+{
+	int i=low;
+	int j=mid+1;
+	int m=mid,n=high;
+	int k=0;
+
+	while(i<=m&&j<=n)//先一对一对处理
+	{
+		if(a[i]<=a[j])
+		{
+			temp[k++]=a[i++];
+		}
+		else
+		{
+			temp[k++]=a[j++];
+		}
+	}
+	while(i<=m)//处理这两个部分中剩余的
+	{
+		temp[k++]=a[i++];
+	}
+	while(j<=n)
+	{
+		temp[k++]=a[j++];
+	}
+
+	for(i=0;i<k;i++)
+	{
+		a[low+i]=temp[i];
+	}
+}
+void MergeSort(int a[],int low,int high,int temp[])
+{
+	if(low<high)
+	{
+		int mid=(low+high)/2;
+
+		MergeSort(a,low,mid,temp);//使得左边先有序
+		MergeSort(a,mid+1,high,temp);
+
+		Merge(a,low,mid,high,temp);//将左右两部分进行合并
+	}
+}
+//7.堆排序
+//思路：先将待排序列整理成一个大根堆（一般从小到大排序采用大根堆）
+void MaxHeapDown(std::vector<int>& a,int start,int end)
+{
+	int i=start;//当前节点的位置
+	int left=2*i+1;//左孩子所在的位置（二叉树）
+	int tmp=a[i];
+	for(;left<=end;i=left,left=2*left+1)//left+1表示右孩子
+	{
+		if(left<end&&a[left]<a[left+1])
+		{
+			left++;//从左右孩子中选择一个较大的
+		}
+		if(tmp>=a[left])
+		{
+			break;//不需要调整
+		}
+		else
+		{
+			a[i]=a[left];
+			a[left]=tmp;
+		}
+	}
+}
+void HeapSort(std::vector<int>& v)
+{
+	int i,tmp;
+	int len=v.size();
+
+	//从（len/2-1到0逐次遍历，遍历之后，得到数组（实际最大二叉堆））
+	for(i=len/2-1;i>0;i--)
+	{
+		MaxHeapDown(v,i,len-1);//从最后一个元素开始进行调整，不断缩小范围直到第一个元素
+	}
+		for(i=len-1;i>0;i--)
+		{
+			//交换v[0]和v[i]交换后v[i]是最大值
+			std::swap(v[0],v[i]);
+			MaxHeapDown(v,0,i-1);
+		}
+}
+//8.桶排序
+//把待排序列做为值，以桶的下标和待排序列元素进行比较
+void BucketSort(std::vector<int>& v,int max)
+{
+	int len =v.size();
+	int *tmp=new int[max+1]();//建立一个新的数组，这个数组即为桶
+	for(int i=0;i<max+1;i++)
+	{
+		tmp[i]=0;
+	}
+
+	int index=0;
+	for(int j=0;j<len;++j)
+	{
+		tmp[v[j]]+=1;//将桶的下标中等于待排序列的元素的位置元素加1
+	}
+	for(int j=0;j<max+1;++j)
+	{
+		for(int k=1;k<=tmp[j];++k)
+		{
+			v[index++]=j;
+		}
+	}
+	free(tmp);
+}
